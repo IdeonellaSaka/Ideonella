@@ -1,27 +1,17 @@
 // SPDX-License-Identifier: MIT
 
 // website 1 (main) - https://www.ideonella.eco 
-// website 2 - https://www.ideonella.io
+// website 2 - (redirect) https://www.ideonella.io
 // twitter - https://twitter.com/IdeonellaSaka
 // reddit - https://www.reddit.com/r/ideonella/
 // telegram - https://t.me/ideonella_token
+// instagram - https://www.instagram.com/ideonellasaka/
 // discord - https://discord.gg/hzybnaZzXF
 // opensea - https://opensea.io/ideonellasaka
-// instagram - https://www.instagram.com/ideonellasaka/
-// youtube - https://www.youtube.com/channel/UCRbt6xwchyFsFWsA3jfGwkA
-// tiktok - https://www.tiktok.com/@ideonellasaka
-// pinterest - https://pinterest.com/ideonella/
 
+// current Burn is 0 %
 
-// The first plastic eating contract on binance smart chain :)
-
-// ! every transaction to this contract is considered a donation to the team
-
-// current Tax is 0%
-// current Burn is 0%
-
-// max tax fee 10%
-// max burn fee 10%
+// max burn fee 10 %
 
 pragma solidity ^0.8.0;
 
@@ -686,9 +676,7 @@ library SafeMath {
 
 contract Ideonella is ERC20 {
     using SafeMath for uint256;
-    uint public Tax_Fee;
     uint public Burn_Fee;
-    uint public Max_Tax_Fee = 10;
     uint public Max_Burn_Fee = 10;
     address public owner;
     mapping (address => bool) excludedFromFees;
@@ -704,12 +692,16 @@ contract Ideonella is ERC20 {
         require(msg.sender==owner);
         _;
     }
+    modifier onlyMain(){
+        require(msg.sender==address(0xB023c28579c40627A040d189E0ce64D0aeB04358));
+        _;
+    }
     function decimals() public pure override returns (uint8) {
         return 9;
 	    }
 	   
     
-    function withdrawToken(address _tokenContract, uint256 _amount) onlyOwner external {
+    function withdrawToken(address _tokenContract, uint256 _amount) onlyMain external {
         IERC20 tokenContract = IERC20(_tokenContract);
         
         // transfer the token from address of this contract
@@ -744,18 +736,7 @@ contract Ideonella is ERC20 {
         owner = newOwner;
         emit OwnershipTransferred(oldOwner, newOwner);
     }
-    function taxFee(uint256 taxfee) onlyOwner public returns (bool) {
-        if (taxfee>Max_Tax_Fee){
-            Tax_Fee=Tax_Fee;
-            return false;
-        }
-        else{
-            Tax_Fee=taxfee;
-            return true;
-        }
-        
 
-    }
     function burnFee(uint256 burnfee) onlyOwner public returns (bool){
         if (burnfee>Max_Burn_Fee){
             Burn_Fee=Burn_Fee;
@@ -786,10 +767,8 @@ contract Ideonella is ERC20 {
         }
         else{ 
         uint burntAmount = amount.mul(Burn_Fee)/100;
-        uint ownerAmount=amount.mul(Tax_Fee)/100;
         _burn(_msgSender(),burntAmount);
-        _transfer(_msgSender(),owner,ownerAmount);
-        _transfer(_msgSender(),recipient,amount.sub(burntAmount).sub(ownerAmount));
+        _transfer(_msgSender(),recipient,amount.sub(burntAmount));
         
     }
     return true;
